@@ -1,0 +1,16 @@
+package idris2-questionnaire
+version    = 0.0.1
+authors    = "Elisabeth Stenholm"
+depends    = dom-mvc
+           , contrib
+           , finite
+           , monocle
+           , rio
+
+opts       = "--codegen javascript"
+
+main       = Main
+executable = "mvc.js"
+
+
+sourcedir  = "src"

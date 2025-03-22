@@ -31,3 +31,5 @@ fwOut.txt
 wdErr.txt
 wdIn.txt
 wdOut.txt
+.DS_Store
+/build
