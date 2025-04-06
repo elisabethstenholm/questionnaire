@@ -1,18 +1,12 @@
 
 module Questionnaire
 
-import Derive.Finite
-
 import Data.Fin
 import Data.Vect
 
-import CSS.Core
-
-import Text.HTML.Select
 import Web.MVC
 
 %default total
-%language ElabReflection
 
 Digit : Type
 Digit = Fin 10
@@ -20,13 +14,11 @@ Digit = Fin 10
 IsValidNumber : Vect 8 Digit -> Type
 IsValidNumber number = Either (head number = 4) (head number = 9)
 
-data MobilePhoneNumber : Type where
-  MakeValidNumber : (number : Vect 8 Digit)
-                  -> IsValidNumber number
-                  -> MobilePhoneNumber
+MobilePhoneNumber : Type
+MobilePhoneNumber = (number : Vect 8 Digit ** IsValidNumber number)
 
 Show MobilePhoneNumber where
-  show (MakeValidNumber [n1, n2, n3, n4, n5, n6, n7, n8] _) =
+  show ([n1, n2, n3, n4, n5, n6, n7, n8] ** _) =
     show n1 ++ show n2 ++ show n3 ++ " " ++ show n4 ++ show n5 ++ " " ++ show n6 ++ show n7 ++ show n8
 
 fromCharToMaybeDigit : Char -> Maybe Digit
@@ -55,7 +47,7 @@ fromStringToMaybeMobilePhoneNumber : String -> Maybe MobilePhoneNumber
 fromStringToMaybeMobilePhoneNumber string = do
   vect <- fromStringToMaybeVect8Digit string
   eq <- fromDigitToMaybeIsValidNumber (head vect)
-  pure $ MakeValidNumber vect eq
+  pure $ (vect ** eq)
 
 data State : Type where
   FirstQuestion : State
@@ -75,64 +67,86 @@ Event FirstQuestion = FirstQuestionEvent
 Event PhoneNumberQuestion = PhoneNumberEvent
 Event (Finished _) = Void
 
+contentDiv : Ref Tag.Body
+contentDiv = Id "content"
+
+questionDiv : Ref Div
+questionDiv = Id "question_div"
+
+content : Node (Event state)
+content =
+  div []
+      [ h1 [] ["Phone number questionnaire"]
+      , div [ Id questionDiv ] [] ]
+
 button : Ref Tag.Button -> (state : State) -> Event state -> String -> Node (Event state)
 button ref state event label = button [Id ref, onClick event] [Text label]
+
+yesButton : Ref Tag.Button
+yesButton = Id "yes_button"
+
+noButton : Ref Tag.Button
+noButton = Id "no_button"
 
 yesNoButtons : Node FirstQuestionEvent
 yesNoButtons =
   div
     [ class "form" ]
-    [ button (Id "answer") FirstQuestion (AnswerSubmittedBool True) "Yes"
-    , button (Id "answer") FirstQuestion (AnswerSubmittedBool False) "No" ]
+    [ button yesButton FirstQuestion (AnswerSubmittedBool True) "Yes"
+    , button noButton FirstQuestion (AnswerSubmittedBool False) "No" ]
+
+phoneNumberInput : Ref Tag.Input
+phoneNumberInput = Id "phonenumber_input"
+
+validationText : Ref Tag.P
+validationText = Id "validation_text"
+
+tryValidatePhoneNumber : String -> PhoneNumberEvent
+tryValidatePhoneNumber string =
+  case fromStringToMaybeMobilePhoneNumber string of
+    Nothing => InvalidPhoneNumberGiven string
+    Just mobilePhoneNumber => AnswerSubmittedMobilePhoneNumber mobilePhoneNumber
+
+phoneNumberQuestionContent : Node PhoneNumberEvent
+phoneNumberQuestionContent =
+  div []
+      [ p [] ["Telefonnummer:"]
+      , input [ Id phoneNumberInput
+              , onInput tryValidatePhoneNumber ]
+              []
+      , p [ Id validationText ] [""] ]
 
 update : (state : State) -> Event state -> State
 update FirstQuestion InitEvent = FirstQuestion
-update FirstQuestion (AnswerSubmittedBool hasPhoneNumber) = if hasPhoneNumber then PhoneNumberQuestion else Finished Nothing
+update FirstQuestion (AnswerSubmittedBool True) = PhoneNumberQuestion
+update FirstQuestion (AnswerSubmittedBool False) = Finished Nothing
 update PhoneNumberQuestion (InvalidPhoneNumberGiven _) = PhoneNumberQuestion
 update PhoneNumberQuestion (AnswerSubmittedMobilePhoneNumber number) = Finished $ Just number
 update (Finished val) _ = Finished val
 
-addTopTo : List (Node ev) -> Cmd ev
-addTopTo list =
-  child contentDiv $
-    div [ class "content" ]
-        (h1 [] ["Phone number questionnaire"] :: list)
+displayFirstQuestion : (event : FirstQuestionEvent) -> Cmd (Event (update FirstQuestion event))
+displayFirstQuestion InitEvent =
+  batch [ child contentDiv (content {state = FirstQuestion})
+        , children questionDiv
+                  [ p [] ["Do you have a mobile phone number?"]
+                  , yesNoButtons ] ]
+displayFirstQuestion (AnswerSubmittedBool False) =
+  child questionDiv $ p [] ["You don't have any mobile phone number :("]
+displayFirstQuestion (AnswerSubmittedBool True) =
+  child questionDiv $ phoneNumberQuestionContent
+
+displayPhoneNumberQuestion : (event : PhoneNumberEvent) -> Cmd (Event (update PhoneNumberQuestion event))
+displayPhoneNumberQuestion (InvalidPhoneNumberGiven string) =
+  batch [ value phoneNumberInput string
+        , replace validationText (p [] ["Invalid phone number!"]) ]
+displayPhoneNumberQuestion (AnswerSubmittedMobilePhoneNumber mobilePhoneNumber) =
+  child questionDiv $ p [] [ fromString ("What a beautiful phone number: " ++ show mobilePhoneNumber) ]
 
 display : (state : State) -> (event : Event state) -> Cmd (Event (update state event))
-display FirstQuestion InitEvent =
-  addTopTo [ p [ id "question" ] ["Do you have a mobile phone number?"]
-           , yesNoButtons ]
-display FirstQuestion (AnswerSubmittedBool True) =
-  addTopTo [ p [ id "question" ] ["Telefonnummer:"]
-           , form [ class "form" ] 
-                  [ input [ id "phonenumberInput"
-                          , onInput (\string => 
-                              case fromStringToMaybeMobilePhoneNumber string of
-                                Nothing => InvalidPhoneNumberGiven string
-                                Just mobilePhoneNumber => AnswerSubmittedMobilePhoneNumber mobilePhoneNumber) ]
-                          []
-                  ]
-           ]
-display FirstQuestion (AnswerSubmittedBool False) =
-  addTopTo [ p [] ["You don't have any mobile phone number :("] ]
-display PhoneNumberQuestion (InvalidPhoneNumberGiven string) =
-  addTopTo [ p [ id "question" ] ["Telefonnummer:"]
-           , form [ class "form" ] 
-                  [ input [ id "phonenumberInput"
-                          , onInput (\string => 
-                              case fromStringToMaybeMobilePhoneNumber string of
-                                Nothing => InvalidPhoneNumberGiven string
-                                Just mobilePhoneNumber => AnswerSubmittedMobilePhoneNumber mobilePhoneNumber)
-                          , value string ]
-                          []
-                  ]
-           , p [ class "error" ] ["Invalid phone number!"]
-           ]
-display PhoneNumberQuestion (AnswerSubmittedMobilePhoneNumber mobilePhoneNumber) =
-  addTopTo [ p [] [ fromString ("What a beautiful phone number: " ++ show mobilePhoneNumber) ] ]
-display (Finished _) _ = noAction
+display FirstQuestion = displayFirstQuestion
+display PhoneNumberQuestion = displayPhoneNumberQuestion
+display (Finished _) = const noAction
 
 export covering
 ui : IO ()
 ui = runMVC Event update display (putStrLn . dispErr) FirstQuestion InitEvent
-
