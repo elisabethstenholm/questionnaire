@@ -1,56 +1,23 @@
 module Question.Phonenumber
 
-import Data.Fin
-import Data.Vect
-import Data.String
-
 import Web.MVC
 
 import Questionnaire
+import Question.Finished
 
 %default total
-
-Digit : Type
-Digit = Fin 10
-
-IsValidNumber : Vect 8 Digit -> Type
-IsValidNumber number = Either (head number = 4) (head number = 9)
-
-export
-MobilePhoneNumber : Type
-MobilePhoneNumber = (number : Vect 8 Digit ** IsValidNumber number)
-
-export
-Show MobilePhoneNumber where
-  show ([n1, n2, n3, n4, n5, n6, n7, n8] ** _) =
-    show n1 ++ show n2 ++ show n3 ++ " " ++ show n4 ++ show n5 ++ " " ++ show n6 ++ show n7 ++ show n8
-
-tryParseMobilePhoneNumber : String -> Maybe MobilePhoneNumber
-tryParseMobilePhoneNumber string = do
-  vect <- tryParseVect8Digit string
-  valid <- tryValidateFirstDigit (head vect)
-  pure $ (vect ** valid)
-  where
-    tryParseVect8Digit : String -> Maybe (Vect 8 Digit)
-    tryParseVect8Digit string =
-      toVect 8 =<< (sequence $ String.parsePositive . String.singleton <$> unpack string)
-
-    tryValidateFirstDigit : (digit : Digit) -> Maybe (Either (digit = 4) (digit = 9))
-    tryValidateFirstDigit 4 = Just $ Left Refl
-    tryValidateFirstDigit 9 = Just $ Right Refl
-    tryValidateFirstDigit _ = Nothing
 
 public export
 State : Type
 State = ()
 
 public export
-data LocalEvent : Type where
-  InvalidPhoneNumberGiven : String -> LocalEvent
+data LocalEvent : Question.Phonenumber.State -> Type where
+  InvalidPhoneNumberGiven : String -> LocalEvent ()
 
 public export
-Event : State -> Type
-Event _ = GlobalEvent LocalEvent MobilePhoneNumber
+Event : Question.Phonenumber.State -> Type
+Event state = GlobalEvent (LocalEvent state) MobilePhoneNumber
 
 export
 phoneNumberInput : Ref Tag.Input
@@ -60,14 +27,14 @@ export
 validationText : Ref Tag.P
 validationText = Id "validation_text"
 
-tryValidatePhoneNumber : String -> Event ()
+tryValidatePhoneNumber : String -> GlobalEvent (LocalEvent ()) MobilePhoneNumber
 tryValidatePhoneNumber string =
   case tryParseMobilePhoneNumber string of
     Nothing => LocalEvent $ InvalidPhoneNumberGiven string
     Just mobilePhoneNumber => SubmitData mobilePhoneNumber
 
 export
-phoneNumberQuestionContent : Node (Event ())
+phoneNumberQuestionContent : Node (GlobalEvent (LocalEvent ()) MobilePhoneNumber)
 phoneNumberQuestionContent =
   div []
       [ p [] ["Phone number:"]
@@ -75,3 +42,19 @@ phoneNumberQuestionContent =
               , onInput tryValidatePhoneNumber ]
               []
       , p [ Id validationText ] [""] ]
+
+export
+initCmd : Cmd (Event ())
+initCmd = child questionDiv phoneNumberQuestionContent
+
+export
+update : (state : Question.Phonenumber.State) -> (event : LocalEvent state) -> Question.Phonenumber.State
+update () (InvalidPhoneNumberGiven string) = ()
+
+export
+display : (state : Question.Phonenumber.State)
+        -> (event : LocalEvent state)
+        -> Cmd (Event (update state event))
+display () (InvalidPhoneNumberGiven string) =
+  batch [ value phoneNumberInput string
+        , replace validationText (p [] ["Invalid phone number!"]) ]
