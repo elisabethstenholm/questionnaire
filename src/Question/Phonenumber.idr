@@ -6,6 +6,8 @@ import Data.String
 
 import Web.MVC
 
+import Questionnaire
+
 %default total
 
 Digit : Type
@@ -39,9 +41,12 @@ fromStringToMaybeMobilePhoneNumber string = do
     tryValidateFirstDigit _ = Nothing
 
 public export
-data Event : Type where
-  InvalidPhoneNumberGiven : String -> Event
-  AnswerSubmitted : MobilePhoneNumber -> Event
+data LocalEvent : Type where
+  InvalidPhoneNumberGiven : String -> LocalEvent
+
+public export
+Event : Type
+Event = GlobalEvent LocalEvent MobilePhoneNumber
 
 export
 phoneNumberInput : Ref Tag.Input
@@ -54,8 +59,8 @@ validationText = Id "validation_text"
 tryValidatePhoneNumber : String -> Event
 tryValidatePhoneNumber string =
   case fromStringToMaybeMobilePhoneNumber string of
-    Nothing => InvalidPhoneNumberGiven string
-    Just mobilePhoneNumber => AnswerSubmitted mobilePhoneNumber
+    Nothing => LocalEvent $ InvalidPhoneNumberGiven string
+    Just mobilePhoneNumber => SubmitData mobilePhoneNumber
 
 export
 phoneNumberQuestionContent : Node Event

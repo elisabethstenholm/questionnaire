@@ -2,14 +2,18 @@ module Question.Initial
 
 import Web.MVC
 
+import Questionnaire
 import Question.Phonenumber
 
 %default total
 
 public export
-data Event : Type where
-  Init : Event
-  AnswerSubmitted : Bool -> Event
+Event : Type
+Event = GlobalEvent () Bool
+
+export
+init : Question.Initial.Event
+init = LocalEvent ()
 
 button : Ref Tag.Button -> Question.Initial.Event -> String -> Node Question.Initial.Event
 button ref event label = button [Id ref, onClick event] [Text label]
@@ -25,5 +29,5 @@ yesNoButtons : Node Question.Initial.Event
 yesNoButtons =
   div
     [ class "form" ]
-    [ button yesButton (AnswerSubmitted True) "Yes"
-    , button noButton (AnswerSubmitted False) "No" ]
+    [ button yesButton (SubmitData True) "Yes"
+    , button noButton (SubmitData False) "No" ]

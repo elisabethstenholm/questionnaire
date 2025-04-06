@@ -1,6 +1,6 @@
 module Main
 
-import Questionnaire
+import UI
 
 covering
 main : IO ()
