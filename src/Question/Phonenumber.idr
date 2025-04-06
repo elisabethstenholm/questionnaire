@@ -25,8 +25,8 @@ Show MobilePhoneNumber where
   show ([n1, n2, n3, n4, n5, n6, n7, n8] ** _) =
     show n1 ++ show n2 ++ show n3 ++ " " ++ show n4 ++ show n5 ++ " " ++ show n6 ++ show n7 ++ show n8
 
-fromStringToMaybeMobilePhoneNumber : String -> Maybe MobilePhoneNumber
-fromStringToMaybeMobilePhoneNumber string = do
+tryParseMobilePhoneNumber : String -> Maybe MobilePhoneNumber
+tryParseMobilePhoneNumber string = do
   vect <- tryParseVect8Digit string
   valid <- tryValidateFirstDigit (head vect)
   pure $ (vect ** valid)
@@ -41,12 +41,16 @@ fromStringToMaybeMobilePhoneNumber string = do
     tryValidateFirstDigit _ = Nothing
 
 public export
+State : Type
+State = ()
+
+public export
 data LocalEvent : Type where
   InvalidPhoneNumberGiven : String -> LocalEvent
 
 public export
-Event : Type
-Event = GlobalEvent LocalEvent MobilePhoneNumber
+Event : State -> Type
+Event _ = GlobalEvent LocalEvent MobilePhoneNumber
 
 export
 phoneNumberInput : Ref Tag.Input
@@ -56,17 +60,17 @@ export
 validationText : Ref Tag.P
 validationText = Id "validation_text"
 
-tryValidatePhoneNumber : String -> Event
+tryValidatePhoneNumber : String -> Event ()
 tryValidatePhoneNumber string =
-  case fromStringToMaybeMobilePhoneNumber string of
+  case tryParseMobilePhoneNumber string of
     Nothing => LocalEvent $ InvalidPhoneNumberGiven string
     Just mobilePhoneNumber => SubmitData mobilePhoneNumber
 
 export
-phoneNumberQuestionContent : Node Event
+phoneNumberQuestionContent : Node (Event ())
 phoneNumberQuestionContent =
   div []
-      [ p [] ["Telefonnummer:"]
+      [ p [] ["Phone number:"]
       , input [ Id phoneNumberInput
               , onInput tryValidatePhoneNumber ]
               []

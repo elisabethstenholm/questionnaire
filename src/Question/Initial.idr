@@ -8,14 +8,18 @@ import Question.Phonenumber
 %default total
 
 public export
-Event : Type
-Event = GlobalEvent () Bool
+State : Type
+State = ()
+
+public export
+Event : Question.Initial.State -> Type
+Event _ = GlobalEvent () Bool
 
 export
-init : Question.Initial.Event
+init : Question.Initial.Event ()
 init = LocalEvent ()
 
-button : Ref Tag.Button -> Question.Initial.Event -> String -> Node Question.Initial.Event
+button : Ref Tag.Button -> Question.Initial.Event () -> String -> Node (Question.Initial.Event ())
 button ref event label = button [Id ref, onClick event] [Text label]
 
 yesButton : Ref Tag.Button
@@ -25,7 +29,7 @@ noButton : Ref Tag.Button
 noButton = Id "no_button"
 
 export
-yesNoButtons : Node Question.Initial.Event
+yesNoButtons : Node (Question.Initial.Event ())
 yesNoButtons =
   div
     [ class "form" ]
