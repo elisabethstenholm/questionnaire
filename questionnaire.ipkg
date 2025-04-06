@@ -10,7 +10,7 @@ depends    = dom-mvc
 opts       = "--codegen javascript"
 
 main       = Main
-executable = "mvc.js"
+executable = "questionnaire.js"
 
 
 sourcedir  = "src"
