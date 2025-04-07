@@ -6,24 +6,10 @@ import Data.String
 
 import Web.MVC
 
+import ValidData
 import Questionnaire
 
 %default total
-
-Digit : Type
-Digit = Fin 10
-
-IsValidNumber : Vect 8 Digit -> Type
-IsValidNumber number = Either (head number = 4) (head number = 9)
-
-export
-MobilePhoneNumber : Type
-MobilePhoneNumber = (number : Vect 8 Digit ** IsValidNumber number)
-
-export
-Show MobilePhoneNumber where
-  show ([n1, n2, n3, n4, n5, n6, n7, n8] ** _) =
-    show n1 ++ show n2 ++ show n3 ++ " " ++ show n4 ++ show n5 ++ " " ++ show n6 ++ show n7 ++ show n8
 
 export
 tryParseMobilePhoneNumber : String -> Maybe MobilePhoneNumber
@@ -41,13 +27,14 @@ tryParseMobilePhoneNumber string = do
     tryValidateFirstDigit 9 = Just $ Right Refl
     tryValidateFirstDigit _ = Nothing
 
-public export
-State : Type
-State = Maybe MobilePhoneNumber
+export
+initCmd : Maybe MobilePhoneNumber -> Cmd Void
+initCmd Nothing =
+  child questionDiv $ p [] ["You don't have any mobile phone number :("]
+initCmd (Just mobilePhoneNumber) =
+  child questionDiv $ p [] [ fromString ("What a beautiful phone number: " ++ show mobilePhoneNumber) ]
 
 export
-initCmd : State -> Cmd Void
-initCmd Nothing =
-    child questionDiv $ p [] ["You don't have any mobile phone number :("]
-initCmd (Just mobilePhoneNumber) =
-    child questionDiv $ p [] [ fromString ("What a beautiful phone number: " ++ show mobilePhoneNumber) ]
+question : Maybe MobilePhoneNumber -> Questionnaire (Maybe MobilePhoneNumber)
+question Nothing = Finished Nothing (initCmd Nothing)
+question (Just mobilePhoneNumber) = Finished (Just mobilePhoneNumber) (initCmd (Just mobilePhoneNumber))

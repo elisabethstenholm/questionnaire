@@ -1,8 +1,11 @@
 
 module UI
 
+import Data.Vect
+
 import Web.MVC
 
+import ValidData
 import Questionnaire
 import Question.Initial
 import Question.Phonenumber
@@ -13,7 +16,7 @@ import Question.Finished
 data State : Type where
   InitialQuestion : Question.Initial.State -> State
   PhoneNumberQuestion : Question.Phonenumber.State -> State
-  Finished : Question.Finished.State -> State
+  Finished : Maybe MobilePhoneNumber -> State
 
 Event : UI.State -> Type
 Event (InitialQuestion state) = Question.Initial.Event state

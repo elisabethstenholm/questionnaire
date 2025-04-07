@@ -2,8 +2,10 @@ module Question.Initial
 
 import Web.MVC
 
+import ValidData
 import Questionnaire
 import Question.Phonenumber
+import Question.Finished
 
 %default total
 
@@ -44,13 +46,13 @@ yesNoButtons =
     [ button yesButton (SubmitData True) "Yes"
     , button noButton (SubmitData False) "No" ]
 
--- export
--- initCmd : Cmd (Question.Initial.Event (update () ()))
--- initCmd =
---   batch [ child contentDiv content
---         , children questionDiv
---                   [ p [] ["Do you have a mobile phone number?"]
---                   , yesNoButtons ] ]
+export
+initCmd : Cmd (GlobalEvent (Question.Initial.LocalEvent ()) Bool)
+initCmd =
+  batch [ child contentDiv content
+        , children questionDiv
+                  [ p [] ["Do you have a mobile phone number?"]
+                  , yesNoButtons ] ]
 
 export
 display : (state : Question.Initial.State)
@@ -61,3 +63,22 @@ display state event =
         , children questionDiv
                   [ p [] ["Do you have a mobile phone number?"]
                   , yesNoButtons ] ]
+
+nextQuestion : Bool -> Questionnaire (Maybe MobilePhoneNumber)
+nextQuestion True = Question.Finished.question Nothing
+nextQuestion False = Question.Phonenumber.question
+
+questionData : QuestionData
+questionData =
+  MkQuestionData
+    Question.Initial.State
+    Question.Initial.LocalEvent
+    Bool
+    ()
+    initCmd
+    update
+    display
+
+export
+question : Questionnaire (Maybe MobilePhoneNumber)
+question = Question questionData nextQuestion

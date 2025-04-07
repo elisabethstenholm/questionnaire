@@ -1,7 +1,10 @@
 module Question.Phonenumber
 
+import Data.Vect
+
 import Web.MVC
 
+import ValidData
 import Questionnaire
 import Question.Finished
 
@@ -58,3 +61,18 @@ display : (state : Question.Phonenumber.State)
 display () (InvalidPhoneNumberGiven string) =
   batch [ value phoneNumberInput string
         , replace validationText (p [] ["Invalid phone number!"]) ]
+
+questionData : QuestionData
+questionData =
+  MkQuestionData
+    Question.Phonenumber.State
+    Question.Phonenumber.LocalEvent
+    MobilePhoneNumber
+    ()
+    initCmd
+    update
+    display
+
+export
+question : Questionnaire (Maybe MobilePhoneNumber)
+question = Question questionData (Question.Finished.question . Just)
