@@ -5,15 +5,13 @@ import Data.Vect
 
 import Web.MVC
 
-import ValidData
 import Questionnaire
+
+import ValidData
+import Static
 import Question.Initial
--- import Question.Phonenumber
--- import Question.Finished
 
 %default total
-
-
 
 QuestionState : Questionnaire dataType -> Type
 QuestionState (Finished finishedData validData) = ()
@@ -33,7 +31,7 @@ Event : State questionnaire -> Type
 Event Init = ()
 Event (AtQuestion (Finished finishedData validData ** _) _) = finishedData.finishedEvent
 Event (AtQuestion (Question questionData nextQuestion ** _) state) =
-  GlobalEvent (questionData.questionEvent state) questionData.validData
+  Either (questionData.questionEvent state) questionData.validData
 
 initialize : (subQuestionnaire : Questionnaire dataType)
            -> {pathUntil : PathUntil questionnaire subQuestionnaire}
@@ -52,11 +50,11 @@ update (AtQuestion (Finished finishedData validData ** (pathUntil, pathFrom)) st
   (AtQuestion (Finished finishedData validData ** (pathUntil, pathFrom)) state)
 update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) event =
   case event of
-    LocalEvent localEvent => 
+    Left localEvent => 
       AtQuestion
         (Question questionData nextQuestion ** (pathUntil, pathFrom)) 
         (questionData.update state localEvent)
-    SubmitData dataSubmitted =>
+    Right dataSubmitted =>
       AtQuestion
         (nextQuestion dataSubmitted ** (AppendToPathUntil questionData nextQuestion dataSubmitted pathUntil, EmptyPathFrom))
         (initialState $ nextQuestion dataSubmitted)
@@ -66,15 +64,16 @@ display : {questionnaire : Questionnaire dataType}
         -> (event : Event state)
         -> Cmd (Event (update state event))
 display {questionnaire} Init _ =
-  case questionnaire of
-    Finished finishedData validData => finishedData.initializeFinished questionDiv
-    Question questionData nextQuestion => questionData.initializeQuestion questionDiv
+  let cmd = case questionnaire of
+              Finished finishedData validData => finishedData.initializeFinished questionDiv
+              Question questionData nextQuestion => questionData.initializeQuestion questionDiv
+  in batch [ child contentDiv content , cmd ]
 display (AtQuestion (Finished finishedData validData ** (pathUntil, pathFrom)) state) event = noAction
 display (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) event =
   case event of
-    LocalEvent localEvent => 
+    Left localEvent => 
       questionData.display questionDiv state localEvent
-    SubmitData dataSubmitted =>
+    Right dataSubmitted =>
       initialize (nextQuestion dataSubmitted)
 
 

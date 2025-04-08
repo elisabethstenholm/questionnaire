@@ -3,27 +3,6 @@ module Questionnaire
 import Web.MVC
 
 
-export
-contentDiv : Ref Tag.Body
-contentDiv = Id "content"
-
-export
-questionDiv : Ref Tag.Div
-questionDiv = Id "question_div"
-
-export
-content : Node e
-content =
-  div []
-      [ h1 [] ["Phone number questionnaire"]
-      , div [ Id questionDiv ] [] ]
-
-
-public export
-data GlobalEvent : (eventType : Type) -> (dataType : Type) -> Type where
-  LocalEvent : forall eventType, dataType. (localEvent : eventType) -> GlobalEvent eventType dataType
-  SubmitData : forall eventType, dataType. (dataSubmitted : dataType) -> GlobalEvent eventType dataType
-
 public export
 record FinishedData where
   constructor MkFinishedData
@@ -37,9 +16,9 @@ record QuestionData where
   questionEvent : questionState -> Type
   validData : Type
   initialState : questionState
-  initializeQuestion : Ref Tag.Div -> Cmd (GlobalEvent (questionEvent initialState) validData)
+  initializeQuestion : Ref Tag.Div -> Cmd (Either (questionEvent initialState) validData)
   update : (st : questionState) -> questionEvent st -> questionState
-  display : Ref Tag.Div -> (st : questionState) -> (ev : questionEvent st) -> Cmd (GlobalEvent (questionEvent (update st ev)) validData)
+  display : Ref Tag.Div -> (st : questionState) -> (ev : questionEvent st) -> Cmd (Either (questionEvent (update st ev)) validData)
 
 public export
 data Questionnaire : (dataType : Type) -> Type where

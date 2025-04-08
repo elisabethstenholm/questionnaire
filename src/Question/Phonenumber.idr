@@ -10,35 +10,29 @@ import Question.Finished
 
 %default total
 
-public export
 State : Type
 State = ()
 
-public export
-data LocalEvent : Question.Phonenumber.State -> Type where
-  InvalidPhoneNumberGiven : String -> LocalEvent ()
+InitState : State
+InitState = ()
 
-public export
-Event : Question.Phonenumber.State -> Type
-Event state = GlobalEvent (LocalEvent state) MobilePhoneNumber
+data LocalEvent : State -> Type where
+  InvalidPhoneNumberGiven : String -> LocalEvent state
 
-export
 phoneNumberInput : Ref Tag.Input
 phoneNumberInput = Id "phonenumber_input"
 
-export
 validationText : Ref Tag.P
 validationText = Id "validation_text"
 
-tryValidatePhoneNumber : String -> GlobalEvent (LocalEvent ()) MobilePhoneNumber
+tryValidatePhoneNumber : String -> Either (LocalEvent state) MobilePhoneNumber
 tryValidatePhoneNumber string =
   case tryParseMobilePhoneNumber string of
-    Nothing => LocalEvent $ InvalidPhoneNumberGiven string
-    Just mobilePhoneNumber => SubmitData mobilePhoneNumber
+    Nothing => Left $ InvalidPhoneNumberGiven string
+    Just mobilePhoneNumber => Right mobilePhoneNumber
 
-export
-phoneNumberQuestionContent : Node (GlobalEvent (LocalEvent ()) MobilePhoneNumber)
-phoneNumberQuestionContent =
+content : Node (Either (LocalEvent state) MobilePhoneNumber)
+content =
   div []
       [ p [] ["Phone number:"]
       , input [ Id phoneNumberInput
@@ -46,31 +40,28 @@ phoneNumberQuestionContent =
               []
       , p [ Id validationText ] [""] ]
 
-export
-initCmd : Ref Tag.Div -> Cmd (Event ())
-initCmd ref = child ref phoneNumberQuestionContent
+initialize : Ref Tag.Div -> Cmd (Either (LocalEvent state) MobilePhoneNumber)
+initialize ref = child ref content
 
-export
-update : (state : Question.Phonenumber.State) -> (event : LocalEvent state) -> Question.Phonenumber.State
-update () (InvalidPhoneNumberGiven string) = ()
+update : (state : State) -> (event : LocalEvent state) -> State
+update state _ = state
 
-export
 display : Ref Tag.Div
-        -> (state : Question.Phonenumber.State)
+        -> (state : State)
         -> (event : LocalEvent state)
-        -> Cmd (Event (update state event))
-display _ () (InvalidPhoneNumberGiven string) =
+        -> Cmd (Either (LocalEvent (update state event)) MobilePhoneNumber)
+display _ _ (InvalidPhoneNumberGiven string) =
   batch [ value phoneNumberInput string
         , replace validationText (p [] ["Invalid phone number!"]) ]
 
 questionData : QuestionData
 questionData =
   MkQuestionData
-    Question.Phonenumber.State
-    Question.Phonenumber.LocalEvent
+    State
+    LocalEvent
     MobilePhoneNumber
-    ()
-    initCmd
+    InitState
+    initialize
     update
     display
 

@@ -1,0 +1,20 @@
+module Static
+
+import Web.MVC
+
+%default total
+
+export
+contentDiv : Ref Tag.Body
+contentDiv = Id "content"
+
+export
+questionDiv : Ref Tag.Div
+questionDiv = Id "question_div"
+
+export
+content : Node e
+content =
+  div []
+      [ h1 [] ["Phone number questionnaire"]
+      , div [ Id questionDiv ] [] ]
