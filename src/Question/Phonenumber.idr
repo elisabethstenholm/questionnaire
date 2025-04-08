@@ -47,18 +47,19 @@ phoneNumberQuestionContent =
       , p [ Id validationText ] [""] ]
 
 export
-initCmd : Cmd (Event ())
-initCmd = child questionDiv phoneNumberQuestionContent
+initCmd : Ref Tag.Div -> Cmd (Event ())
+initCmd ref = child ref phoneNumberQuestionContent
 
 export
 update : (state : Question.Phonenumber.State) -> (event : LocalEvent state) -> Question.Phonenumber.State
 update () (InvalidPhoneNumberGiven string) = ()
 
 export
-display : (state : Question.Phonenumber.State)
+display : Ref Tag.Div
+        -> (state : Question.Phonenumber.State)
         -> (event : LocalEvent state)
         -> Cmd (Event (update state event))
-display () (InvalidPhoneNumberGiven string) =
+display _ () (InvalidPhoneNumberGiven string) =
   batch [ value phoneNumberInput string
         , replace validationText (p [] ["Invalid phone number!"]) ]
 

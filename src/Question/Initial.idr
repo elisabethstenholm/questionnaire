@@ -47,26 +47,27 @@ yesNoButtons =
     , button noButton (SubmitData False) "No" ]
 
 export
-initCmd : Cmd (GlobalEvent (Question.Initial.LocalEvent ()) Bool)
-initCmd =
+initCmd : Ref Tag.Div -> Cmd (GlobalEvent (Question.Initial.LocalEvent ()) Bool)
+initCmd ref =
   batch [ child contentDiv content
-        , children questionDiv
+        , children ref
                   [ p [] ["Do you have a mobile phone number?"]
                   , yesNoButtons ] ]
 
 export
-display : (state : Question.Initial.State)
+display : Ref Tag.Div
+        -> (state : Question.Initial.State)
         -> (event : Question.Initial.LocalEvent state)
         -> Cmd (Question.Initial.Event (update state event))
-display state event =
+display ref state event =
   batch [ child contentDiv content
-        , children questionDiv
+        , children ref
                   [ p [] ["Do you have a mobile phone number?"]
                   , yesNoButtons ] ]
 
 nextQuestion : Bool -> Questionnaire (Maybe MobilePhoneNumber)
-nextQuestion True = Question.Finished.question Nothing
-nextQuestion False = Question.Phonenumber.question
+nextQuestion False = Question.Finished.question Nothing
+nextQuestion True = Question.Phonenumber.question
 
 questionData : QuestionData
 questionData =

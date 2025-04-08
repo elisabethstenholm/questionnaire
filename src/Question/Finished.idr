@@ -28,13 +28,18 @@ tryParseMobilePhoneNumber string = do
     tryValidateFirstDigit _ = Nothing
 
 export
-initCmd : Maybe MobilePhoneNumber -> Cmd Void
-initCmd Nothing =
-  child questionDiv $ p [] ["You don't have any mobile phone number :("]
-initCmd (Just mobilePhoneNumber) =
-  child questionDiv $ p [] [ fromString ("What a beautiful phone number: " ++ show mobilePhoneNumber) ]
+initCmd : Ref Tag.Div -> Maybe MobilePhoneNumber -> Cmd Void
+initCmd ref Nothing =
+  child ref $ p [] ["You don't have any mobile phone number :("]
+initCmd ref (Just mobilePhoneNumber) =
+  child ref $ p [] [ fromString ("What a beautiful phone number: " ++ show mobilePhoneNumber) ]
+
+finishedData : Maybe MobilePhoneNumber -> FinishedData
+finishedData maybeNumber =
+  MkFinishedData
+    Void
+    (\ref => initCmd ref maybeNumber)
 
 export
 question : Maybe MobilePhoneNumber -> Questionnaire (Maybe MobilePhoneNumber)
-question Nothing = Finished Nothing (initCmd Nothing)
-question (Just mobilePhoneNumber) = Finished (Just mobilePhoneNumber) (initCmd (Just mobilePhoneNumber))
+question maybeNumber = Finished (finishedData maybeNumber) maybeNumber
