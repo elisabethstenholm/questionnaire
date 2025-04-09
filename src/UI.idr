@@ -14,11 +14,11 @@ import Question.Initial
 %default total
 
 QuestionState : Questionnaire dataType -> Type
-QuestionState (Finished finishedData validData) = ()
+QuestionState (Finished finishedData) = ()
 QuestionState (Question questionData nextQuestion) = questionData.questionState
 
 initialState : (questionnaire : Questionnaire dataType) -> QuestionState questionnaire
-initialState (Finished finishedData validData) = ()
+initialState (Finished finishedData) = ()
 initialState (Question questionData nextQuestion) = questionData.initialState
 
 data State : (questionnaire : Questionnaire dataType) -> Type where
@@ -29,7 +29,7 @@ data State : (questionnaire : Questionnaire dataType) -> Type where
 
 Event : State questionnaire -> Type
 Event Init = ()
-Event (AtQuestion (Finished finishedData validData ** _) _) = finishedData.finishedEvent
+Event (AtQuestion (Finished finishedData ** _) _) = Void
 Event (AtQuestion (Question questionData nextQuestion ** _) state) =
   Either (questionData.questionEvent state) questionData.validData
 
@@ -37,7 +37,7 @@ initialize : (subQuestionnaire : Questionnaire dataType)
            -> {pathUntil : PathUntil questionnaire subQuestionnaire}
            -> {pathFrom : PathFrom subQuestionnaire}
            -> Cmd (Event (AtQuestion (subQuestionnaire ** (pathUntil, pathFrom)) (initialState subQuestionnaire)))
-initialize (Finished finishedData validData) = finishedData.initializeFinished questionDiv
+initialize (Finished finishedData) = finishedData.initializeFinished questionDiv
 initialize (Question questionData nextQuestion) = questionData.initializeQuestion questionDiv
 
 update : {questionnaire : Questionnaire dataType}
@@ -46,8 +46,8 @@ update : {questionnaire : Questionnaire dataType}
        -> State questionnaire
 update {questionnaire} Init _ =
   AtQuestion (questionnaire ** (EmptyPathUntil, EmptyPathFrom)) (initialState questionnaire)
-update (AtQuestion (Finished finishedData validData ** (pathUntil, pathFrom)) state) event =
-  (AtQuestion (Finished finishedData validData ** (pathUntil, pathFrom)) state)
+update (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event =
+  (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state)
 update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) event =
   case event of
     Left localEvent => 
@@ -65,10 +65,10 @@ display : {questionnaire : Questionnaire dataType}
         -> Cmd (Event (update state event))
 display {questionnaire} Init _ =
   let cmd = case questionnaire of
-              Finished finishedData validData => finishedData.initializeFinished questionDiv
+              Finished finishedData => finishedData.initializeFinished questionDiv
               Question questionData nextQuestion => questionData.initializeQuestion questionDiv
   in batch [ child contentDiv content , cmd ]
-display (AtQuestion (Finished finishedData validData ** (pathUntil, pathFrom)) state) event = noAction
+display (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event = noAction
 display (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) event =
   case event of
     Left localEvent => 

@@ -4,10 +4,10 @@ import Web.MVC
 
 
 public export
-record FinishedData where
+record FinishedData (dataType : Type) where
   constructor MkFinishedData
-  finishedEvent : Type
-  initializeFinished : Ref Tag.Div -> Cmd finishedEvent
+  initializeFinished : Ref Tag.Div -> Cmd Void
+  finishedValidData : dataType
 
 public export
 record QuestionData where
@@ -22,7 +22,7 @@ record QuestionData where
 
 public export
 data Questionnaire : (dataType : Type) -> Type where
-  Finished : FinishedData -> dataType -> Questionnaire dataType
+  Finished : FinishedData dataType -> Questionnaire dataType
   Question : (questionData : QuestionData)
            -> (nextQuestion : questionData.validData -> Questionnaire dataType)
            -> Questionnaire dataType
