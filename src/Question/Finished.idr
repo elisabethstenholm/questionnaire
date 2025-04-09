@@ -15,9 +15,9 @@ initialize Nothing ref =
 initialize (Just mobilePhoneNumber) ref =
   child ref $ p [] [ fromString ("What a beautiful phone number: " ++ show mobilePhoneNumber) ]
 
-finishedData : Maybe MobilePhoneNumber -> FinishedData (Maybe MobilePhoneNumber)
+finishedData : Maybe MobilePhoneNumber -> Finished.Data (Maybe MobilePhoneNumber)
 finishedData maybeNumber =
-  MkFinishedData
+  MkData
     (initialize maybeNumber)
     maybeNumber
 

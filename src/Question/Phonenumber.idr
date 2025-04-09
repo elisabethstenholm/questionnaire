@@ -52,11 +52,11 @@ display : Ref Tag.Div
         -> Cmd (Either (LocalEvent (update state event)) MobilePhoneNumber)
 display _ _ (InvalidPhoneNumberGiven string) =
   batch [ value phoneNumberInput string
-        , replace validationText (p [] ["Invalid phone number!"]) ]
+        , replace validationText (p [ Id validationText ] ["Invalid phone number!"]) ]
 
-questionData : QuestionData
+questionData : Question.Data
 questionData =
-  MkQuestionData
+  MkData
     State
     LocalEvent
     MobilePhoneNumber

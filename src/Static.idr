@@ -13,6 +13,10 @@ questionDiv : Ref Tag.Div
 questionDiv = Id "question_div"
 
 export
+navigationDiv : Ref Tag.Div
+navigationDiv = Id "navigation_div"
+
+export
 content : Node e
 content =
   div []

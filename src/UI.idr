@@ -15,7 +15,7 @@ import Question.Initial
 
 QuestionState : Questionnaire dataType -> Type
 QuestionState (Finished finishedData) = ()
-QuestionState (Question questionData nextQuestion) = questionData.questionState
+QuestionState (Question questionData nextQuestion) = questionData.State
 
 initialState : (questionnaire : Questionnaire dataType) -> QuestionState questionnaire
 initialState (Finished finishedData) = ()
@@ -23,22 +23,15 @@ initialState (Question questionData nextQuestion) = questionData.initialState
 
 data State : (questionnaire : Questionnaire dataType) -> Type where
   Init : State questionnaire
-  AtQuestion : (currentQuestion : QuestionnaireZipper questionnaire)
+  AtQuestion : (currentQuestion : Zipper questionnaire)
              -> QuestionState (fst currentQuestion)
              -> State questionnaire
 
-Event : State questionnaire -> Type
+Event : {questionnaire : Questionnaire dataType} -> State questionnaire -> Type
 Event Init = ()
 Event (AtQuestion (Finished finishedData ** _) _) = Void
 Event (AtQuestion (Question questionData nextQuestion ** _) state) =
-  Either (questionData.questionEvent state) questionData.validData
-
-initialize : (subQuestionnaire : Questionnaire dataType)
-           -> {pathUntil : PathUntil questionnaire subQuestionnaire}
-           -> {pathFrom : PathFrom subQuestionnaire}
-           -> Cmd (Event (AtQuestion (subQuestionnaire ** (pathUntil, pathFrom)) (initialState subQuestionnaire)))
-initialize (Finished finishedData) = finishedData.initializeFinished questionDiv
-initialize (Question questionData nextQuestion) = questionData.initializeQuestion questionDiv
+  Either (questionData.Event state) questionData.SubmitDataType
 
 update : {questionnaire : Questionnaire dataType}
        -> (state : State questionnaire)
@@ -59,24 +52,32 @@ update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom))
         (nextQuestion dataSubmitted ** (AppendToPathUntil questionData nextQuestion dataSubmitted pathUntil, EmptyPathFrom))
         (initialState $ nextQuestion dataSubmitted)
 
-display : {questionnaire : Questionnaire dataType}
+display : Ref Tag.Div
+        -> {questionnaire : Questionnaire dataType}
         -> (state : State questionnaire)
         -> (event : Event state)
         -> Cmd (Event (update state event))
-display {questionnaire} Init _ =
+display ref {questionnaire} Init _ =
   let cmd = case questionnaire of
-              Finished finishedData => finishedData.initializeFinished questionDiv
-              Question questionData nextQuestion => questionData.initializeQuestion questionDiv
+              Finished finishedData => finishedData.initialize ref
+              Question questionData nextQuestion => questionData.initialize ref
   in batch [ child contentDiv content , cmd ]
-display (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event = noAction
-display (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) event =
+display ref (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event = noAction
+display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) event =
   case event of
     Left localEvent => 
-      questionData.display questionDiv state localEvent
+      questionData.display ref state localEvent
     Right dataSubmitted =>
       initialize (nextQuestion dataSubmitted)
+  where
+    initialize : (subQuestionnaire : Questionnaire dataType)
+              -> {pathUntil : PathUntil questionnaire subQuestionnaire}
+              -> {pathFrom : PathFrom subQuestionnaire}
+              -> Cmd (Event (AtQuestion (subQuestionnaire ** (pathUntil, pathFrom)) (initialState subQuestionnaire)))
+    initialize (Finished finishedData) = finishedData.initialize ref
+    initialize (Question questionData nextQuestion) = questionData.initialize ref
 
 
 export covering
-ui : (questionnaire : Questionnaire dataType) -> IO ()
-ui questionnaire = runMVC (Event {questionnaire = questionnaire}) update display (putStrLn . dispErr) Init ()
+ui : (questionnaire : Questionnaire dataType) -> Ref Tag.Div -> IO ()
+ui questionnaire ref = runMVC (Event {questionnaire = questionnaire}) update (display ref) (putStrLn . dispErr) Init ()

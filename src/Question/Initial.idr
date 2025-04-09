@@ -53,9 +53,9 @@ nextQuestion : Bool -> Questionnaire (Maybe MobilePhoneNumber)
 nextQuestion False = Question.Finished.question Nothing
 nextQuestion True = Question.Phonenumber.question
 
-questionData : QuestionData
+questionData : Question.Data
 questionData =
-  MkQuestionData
+  MkData
     State
     LocalEvent
     Bool
