@@ -4,6 +4,8 @@ import Data.Fin
 import Data.Vect
 import Data.String
 
+%default total
+
 public export
 Digit : Type
 Digit = Fin 10

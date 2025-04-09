@@ -2,6 +2,7 @@ module Questionnaire
 
 import Web.MVC
 
+%default total
 
 public export
 record FinishedData (dataType : Type) where

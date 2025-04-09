@@ -78,5 +78,5 @@ display (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)
 
 
 export covering
-ui : IO ()
-ui = runMVC (Event {questionnaire = Question.Initial.question}) update display (putStrLn . dispErr) Init ()
+ui : (questionnaire : Questionnaire dataType) -> IO ()
+ui questionnaire = runMVC (Event {questionnaire = questionnaire}) update display (putStrLn . dispErr) Init ()
