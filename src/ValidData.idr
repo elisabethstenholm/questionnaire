@@ -4,6 +4,8 @@ import Data.Fin
 import Data.Vect
 import Data.String
 
+import Web.MVC
+
 %default total
 
 public export
@@ -38,3 +40,48 @@ tryParseMobilePhoneNumber string = do
     tryValidateFirstDigit 4 = Just $ Left Refl
     tryValidateFirstDigit 9 = Just $ Right Refl
     tryValidateFirstDigit _ = Nothing
+
+public export
+Name : Type
+Name = (name : List Char ** NonEmpty name)
+
+Show Name where
+  show (name ** _) = pack name
+
+public export
+data Driver : Type where
+  InsuranceHolder : Driver
+  Other : Name -> MobilePhoneNumber -> Driver
+
+Show Driver where
+  show driver = "Driver: " ++ show' driver
+    where
+      show' : Driver -> String
+      show' InsuranceHolder = "InsuranceHolder"
+      show' (Other name phoneNumber) = "\n\tOther:\n\t\tName: " ++ show (show name) ++ "\n\t\tPhone number: " ++ show phoneNumber
+
+public export
+data Location : Type where
+  WithinNorway : Location
+  OutsideNorway : Location
+
+Show Location where
+  show location = "Location: " ++ show' location
+    where
+      show' : Location -> String
+      show' WithinNorway = "WithinNorway"
+      show' OutsideNorway = "OutsideNorway"
+
+public export
+record ValidData where
+  constructor MkValidData
+  driver : Driver
+  location : Location
+
+Show ValidData where
+  show (MkValidData driver location) = Prelude.show driver ++ "\n" ++ Prelude.show location
+
+export
+viewValidData : ValidData -> Node e
+viewValidData validData =
+  div [] [ pre [] [ fromString $ show validData ] ]

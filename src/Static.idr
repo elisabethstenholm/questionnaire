@@ -20,5 +20,5 @@ export
 content : Node e
 content =
   div []
-      [ h1 [] ["Phone number questionnaire"]
+      [ h1 [] ["Car crash details"]
       , div [ Id questionDiv ] [] ]

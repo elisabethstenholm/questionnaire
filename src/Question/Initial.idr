@@ -3,9 +3,10 @@ module Question.Initial
 import Web.MVC
 
 import ValidData
+import Common
 import Questionnaire
-import Question.Phonenumber
-import Question.Finished
+import Question.Name
+import Question.Location
 
 %default total
 
@@ -18,9 +19,6 @@ InitState = ()
 LocalEvent : State -> Type
 LocalEvent _ = ()
 
-button : Ref Tag.Button -> event -> String -> Node event
-button ref event label = button [Id ref, onClick event] [Text label]
-
 yesButton : Ref Tag.Button
 yesButton = Id "yes_button"
 
@@ -31,8 +29,8 @@ yesNoButtons : Node Bool
 yesNoButtons =
   div
     []
-    [ button yesButton True "Yes"
-    , button noButton False "No" ]
+    [ button [Id yesButton, onClick True] [Text "Yes"]
+    , button [Id noButton, onClick False] [Text "No"] ]
 
 update : (state : State) -> LocalEvent state -> State
 update state event = state
@@ -43,27 +41,28 @@ display : Ref Tag.Div
         -> Cmd (Either (LocalEvent (update state event)) Bool)
 display ref state event =
   children ref
-           [ p [] ["Do you have a mobile phone number?"]
+           [ p [] ["Did you drive the car?"]
            , Right <$> yesNoButtons ]
 
 initialize : Ref Tag.Div -> Cmd (Either (LocalEvent InitState) Bool)
 initialize ref = display ref () ()
 
-nextQuestion : Bool -> Questionnaire (Maybe MobilePhoneNumber)
-nextQuestion False = Question.Finished.question Nothing
-nextQuestion True = Question.Phonenumber.question
+nextQuestion : Bool -> Questionnaire ValidData
+nextQuestion True = Question.Location.question InsuranceHolder
+nextQuestion False = Question.Name.question
 
 questionData : Question.Data
 questionData =
-  MkData
-    State
-    LocalEvent
-    Bool
-    InitState
-    initialize
-    update
-    display
+  MkData {
+    State = State,
+    Event = LocalEvent,
+    SubmitDataType = Bool,
+    initialState = InitState,
+    initialize = initialize,
+    update = update,
+    display = display
+  }
 
 export
-question : Questionnaire (Maybe MobilePhoneNumber)
+question : Questionnaire ValidData
 question = Question questionData nextQuestion
