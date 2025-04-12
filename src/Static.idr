@@ -9,16 +9,25 @@ contentDiv : Ref Tag.Body
 contentDiv = Id "content"
 
 export
-questionDiv : Ref Tag.Div
-questionDiv = Id "question_div"
-
-export
 navigationDiv : Ref Tag.Div
 navigationDiv = Id "navigation_div"
 
 export
-content : Node e
-content =
+forwardButton : Ref Tag.Button
+forwardButton = Id "forward_button"
+
+export
+backwardButton : Ref Tag.Button
+backwardButton = Id "backward_button"
+
+export
+button : Ref Tag.Button -> event -> String -> Node event
+button ref event label = button [Id ref, onClick event] [Text label]
+
+export
+content : Ref Tag.Div -> Node e -> Node e
+content ref title =
   div []
-      [ h1 [] ["Phone number questionnaire"]
-      , div [ Id questionDiv ] [] ]
+      [ title
+      , div [ Id ref ] []
+      , div [ Id navigationDiv ] [] ]

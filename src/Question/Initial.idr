@@ -3,6 +3,7 @@ module Question.Initial
 import Web.MVC
 
 import ValidData
+import Common
 import Questionnaire
 import Question.Phonenumber
 import Question.Finished
@@ -17,9 +18,6 @@ InitState = ()
 
 LocalEvent : State -> Type
 LocalEvent _ = ()
-
-button : Ref Tag.Button -> event -> String -> Node event
-button ref event label = button [Id ref, onClick event] [Text label]
 
 yesButton : Ref Tag.Button
 yesButton = Id "yes_button"

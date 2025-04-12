@@ -24,12 +24,12 @@ namespace Question
     ||| The events at each state
     Event : State -> Type
     ||| The data type of the information gained at this question
-    SubmitDataType : Type
+    AnswerType : Type
     ||| The initial state of the question page
     initialState : State
     ||| A command that initializes the page at the given ref
     ||| This can return either an event or an element of the type submitted in this question
-    initialize : Ref Tag.Div -> Cmd (Either (Event initialState) SubmitDataType)
+    initialize : Ref Tag.Div -> Cmd (Either (Event initialState) AnswerType)
     ||| A function for updating the state
     update : (state : State) -> Event state -> State
     ||| A function for displaying the state
@@ -37,7 +37,7 @@ namespace Question
     display : Ref Tag.Div
             -> (state : State)
             -> (event : Event state)
-            -> Cmd (Either (Event (update state event)) SubmitDataType)
+            -> Cmd (Either (Event (update state event)) AnswerType)
 
 ||| A questionnaire is a graph of finite depth.
 ||| The last node should contain an element of the data type of valid
@@ -49,7 +49,7 @@ data Questionnaire : (dataType : Type) -> Type where
   Finished : Finished.Data dataType -> Questionnaire dataType
   ||| A question node, which contains information about where to go next
   Question : (questionData : Question.Data)
-           -> (nextQuestion : questionData.SubmitDataType -> Questionnaire dataType)
+           -> (nextQuestion : questionData.AnswerType -> Questionnaire dataType)
            -> Questionnaire dataType
 
 ||| Answers to a questionnaire are paths in the corresponding graph.
@@ -62,8 +62,8 @@ data PathFrom : (questionnaire : Questionnaire dataType) -> Type where
   ||| If we have a path going out from b and an edge from a to b then we can prepend that
   ||| edge to the path and get a path going out from a
   PrependToPathFrom : (questionData : Question.Data)
-                    -> (nextQuestion : questionData.SubmitDataType -> Questionnaire dataType)
-                    -> (ch : questionData.SubmitDataType)
+                    -> (nextQuestion : questionData.AnswerType -> Questionnaire dataType)
+                    -> (ch : questionData.AnswerType)
                     -> PathFrom (nextQuestion ch)
                     -> PathFrom (Question questionData nextQuestion)
 
@@ -75,8 +75,8 @@ data PathUntil :  (questionnaire, subQuestionnaire : Questionnaire dataType) -> 
   ||| If we have a path going from a to b and an edge from b to c then we can append that
   ||| edge to the path and get a path going from a to c
   AppendToPathUntil : (questionData : Question.Data)
-                    -> (nextQuestion : questionData.SubmitDataType -> Questionnaire dataType)
-                    -> (ch : questionData.SubmitDataType)
+                    -> (nextQuestion : questionData.AnswerType -> Questionnaire dataType)
+                    -> (ch : questionData.AnswerType)
                     -> PathUntil questionnaire (Question questionData nextQuestion)
                     -> PathUntil questionnaire (nextQuestion ch)
 
