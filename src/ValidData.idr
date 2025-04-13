@@ -58,7 +58,7 @@ Show Driver where
     where
       show' : Driver -> String
       show' InsuranceHolder = "InsuranceHolder"
-      show' (Other name phoneNumber) = "\n\tOther:\n\t\tName: " ++ show (show name) ++ "\n\t\tPhone number: " ++ show phoneNumber
+      show' (Other name phoneNumber) = "\n\tOther:\n\t\tName: " ++ show (show name) ++ "\n\t\tPhoneNumber: " ++ show phoneNumber
 
 public export
 data Location : Type where

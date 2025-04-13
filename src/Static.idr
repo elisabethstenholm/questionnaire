@@ -21,4 +21,4 @@ content : Node e
 content =
   div []
       [ h1 [] ["Car crash details"]
-      , div [ Id questionDiv ] [] ]
+      , div [ Id questionDiv, class "question" ] [] ]

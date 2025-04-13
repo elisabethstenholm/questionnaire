@@ -26,7 +26,7 @@ outsideNorwayButton = Id "outsideNorway_button"
 buttons : Node Location
 buttons =
   div
-    []
+    [ class "buttons" ]
     [ button [Id withinNorwayButton, onClick WithinNorway] [Text "Within Norway"]
     , button [Id outsideNorwayButton, onClick OutsideNorway] [Text "Outside of Norway"] ]
 

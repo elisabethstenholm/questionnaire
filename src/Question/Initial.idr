@@ -28,7 +28,7 @@ noButton = Id "no_button"
 yesNoButtons : Node Bool
 yesNoButtons =
   div
-    []
+    [ class "buttons" ]
     [ button [Id yesButton, onClick True] [Text "Yes"]
     , button [Id noButton, onClick False] [Text "No"] ]
 

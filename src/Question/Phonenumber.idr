@@ -40,8 +40,8 @@ content =
   div []
       [ p [] ["Phone number:"]
       , input [ Id phoneNumberInput , onInput (Left . Input) ] []
-      , p [ Id validationText ] []
-      , button [ Id submitButton , onClick (Left SubmitInvalidNumber) ] [Text "Submit"] ]
+      , p [ Id validationText, class "validation" ] []
+      , div [ class "buttons" ] [ button [ Id submitButton , onClick (Left SubmitInvalidNumber) ] [Text "Submit"] ] ]
 
 initialize : Ref Tag.Div -> Cmd (Either (LocalEvent state) MobilePhoneNumber)
 initialize ref = child ref content
@@ -55,11 +55,11 @@ display : Ref Tag.Div
         -> (event : LocalEvent state)
         -> Cmd (Either (LocalEvent (update state event)) MobilePhoneNumber)
 display _ state (Input string) =
-  batch [ replace validationText (p [ Id validationText ] [])
+  batch [ replace validationText (p [ Id validationText, class "validation" ] [])
         , value phoneNumberInput string
         , replace submitButton (button [ Id submitButton , onClick (tryValidatePhoneNumber string) ] [Text "Submit"]) ]
 display _ state SubmitInvalidNumber =
-  replace validationText (p [ Id validationText ] ["Invalid phone number!"])
+  replace validationText (p [ Id validationText, class "validation" ] ["Invalid phone number!"])
 
 questionData : Question.Data
 questionData =

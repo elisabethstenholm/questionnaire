@@ -38,8 +38,8 @@ content =
   div []
       [ p [] [ "Name:" ]
       , input [ Id nameInput , onInput (Left . Input) ] []
-      , p [ Id validationText ] [""]
-      , button [ Id submitButton , onClick (Left SubmitEmptyString) ] [Text "Submit"] ]
+      , p [ Id validationText, class "validation" ] [""]
+      , div [ class "buttons" ] [ button [ Id submitButton , onClick (Left SubmitEmptyString) ] [Text "Submit"] ] ]
 
 initialize : Ref Tag.Div -> Cmd (Either (LocalEvent InitState) Name)
 initialize ref = child ref content
@@ -53,11 +53,11 @@ display : Ref Tag.Div
         -> (event : LocalEvent state)
         -> Cmd (Either (LocalEvent (update state event)) Name)
 display _ state (Input name) =
-  batch [ replace validationText (p [ Id validationText ] [])
+  batch [ replace validationText (p [ Id validationText, class "validation" ] [])
         , value nameInput name
         , replace submitButton (button [ Id submitButton , onClick (tryValidateName (unpack name)) ] [Text "Submit"]) ]
 display _ [] SubmitEmptyString =
-  replace validationText (p [ Id validationText ] ["Name cannot be empty!"])
+  replace validationText (p [ Id validationText, class "validation" ] ["Name cannot be empty!"])
 
 questionData : Question.Data
 questionData =
