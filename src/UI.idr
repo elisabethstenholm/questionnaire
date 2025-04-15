@@ -43,23 +43,27 @@ data Event : UI.State questionnaire -> Type where
   ||| Submitting the answers of the questionnaire at the last question.
   SubmitQuestionnaire : Event (AtFinished path)
   ||| Going to the next question given a path forward and no valid answer
-  NextByPath : Event (AtQuestion (AtQuestion.MkState { questionData = questionDt,
-                                                       nextQuestion = next,
-                                                       pathUntil = pathUntl,
-                                                       pathFrom = PrependToPathFrom questionDt next answer pathFr,
-                                                       localState = localSt,
-                                                       maybeAnswer = Nothing }))
+  NextByPath : Event (AtQuestion (MkState { questionData = questionDt,
+                                            nextQuestion = next,
+                                            pathUntil = pathUntl,
+                                            pathFrom = PrependToPathFrom questionDt next answer pathFr,
+                                            localState = localSt,
+                                            maybeAnswer = Nothing }))
   ||| Going to the next question given a valid answer
-  NextByAnswer : Event (AtQuestion (AtQuestion.MkState { questionData = questionDt,
-                                                         nextQuestion = next,
-                                                         pathUntil = pathUntl,
-                                                         pathFrom = pathFr,
-                                                         localState = localSt,
-                                                         maybeAnswer = Just answer }))
+  NextByAnswer : Event (AtQuestion (MkState { questionData = questionDt,
+                                              nextQuestion = next,
+                                              pathUntil = pathUntl,
+                                              pathFrom = pathFr,
+                                              localState = localSt,
+                                              maybeAnswer = Just answer }))
   ||| Going to the previous question
-  Previous : Event (AtQuestion (AtQuestion.MkState { questionData = questionDt,
-                                                     nextQuestion = next,
-                                                     pathUntil = AppendToPathUntil questionDt next answer pathUntl,
+  PreviousAtQuestion : {auto p : IsQuestion (next answer)}
+                     -> {pathFr : PathFrom (Question (getQuestionData (next answer) {p}) (getNextQuestion (next answer) {p}))}
+                     -> {localSt : (getQuestionData (next answer) {p}) .State}
+                     -> {maybeAns : Maybe (getQuestionData (next answer) {p}).AnswerType}
+                     -> Event (AtQuestion (MkState { questionData = getQuestionData (next answer) {p},
+                                                     nextQuestion = getNextQuestion (next answer) {p},
+                                                     pathUntil = trPathUntilIsQuestion {p} (AppendToPathUntil questionDt next answer pathUntl),
                                                      pathFrom = pathFr,
                                                      localState = localSt,
                                                      maybeAnswer = maybeAns }))

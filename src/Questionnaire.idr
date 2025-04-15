@@ -52,6 +52,29 @@ data Questionnaire : (dataType : Type) -> Type where
            -> (nextQuestion : questionData.AnswerType -> Questionnaire dataType)
            -> Questionnaire dataType
 
+||| Helper type for inferring leaf nodes
+public export
+data IsFinished : Questionnaire dataType -> Type where
+  ItIsFinished : IsFinished (Finished finishedData)
+
+||| Helper type for inferring non-leaf nodes
+public export
+data IsQuestion : Questionnaire dataType -> Type where
+  ItIsQuestion : IsQuestion (Question questionData nextQuestion)
+
+export
+getQuestionData : (questionnaire : Questionnaire dataType) -> {auto p : IsQuestion questionnaire} -> Question.Data
+getQuestionData (Question questionData nextQuestion) = questionData
+
+export
+getNextQuestion : (questionnaire : Questionnaire dataType) -> {auto p : IsQuestion questionnaire} -> AnswerType (getQuestionData questionnaire) -> Questionnaire dataType
+getNextQuestion (Question questionData nextQuestion) = nextQuestion
+
+export
+eqIsQuestion : (questionnaire : Questionnaire datatype) -> {auto p : IsQuestion questionnaire}
+             -> questionnaire = Question (getQuestionData questionnaire {p}) (getNextQuestion questionnaire {p})
+eqIsQuestion (Question questionData nextQuestion) = Refl
+
 ||| Answers to a questionnaire are paths in the corresponding graph.
 
 ||| The type of paths going out from a given node
@@ -79,6 +102,19 @@ data PathUntil :  (questionnaire, subQuestionnaire : Questionnaire dataType) -> 
                     -> (ch : questionData.AnswerType)
                     -> PathUntil questionnaire (Question questionData nextQuestion)
                     -> PathUntil questionnaire (nextQuestion ch)
+
+export
+trPathUntil : subQuestionnaire = subQuestionnaire'
+            -> PathUntil questionnaire subQuestionnaire
+            -> PathUntil questionnaire subQuestionnaire'
+trPathUntil Refl = id
+
+export
+trPathUntilIsQuestion : {subQuestionnaire : Questionnaire dataType}
+                      -> {auto p : IsQuestion subQuestionnaire}
+                      -> PathUntil questionnaire subQuestionnaire
+                      -> PathUntil questionnaire (Question (getQuestionData subQuestionnaire {p}) (getNextQuestion subQuestionnaire {p}))
+trPathUntilIsQuestion = trPathUntil (eqIsQuestion subQuestionnaire {p})
 
 ||| The zipper of a questionnaire represents the state of the answers so far.
 ||| It consists of the question the user is currently at, the path they have
