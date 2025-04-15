@@ -86,7 +86,7 @@ data PathUntil :  (questionnaire, subQuestionnaire : Questionnaire dataType) -> 
 ||| in case they have gone back in the questionnaire.
 public export
 Zipper : {dataType : Type} -> Questionnaire dataType -> Type
-Zipper {dataType=dataType} questionnaire =
+Zipper questionnaire =
   (subQuestionnaire : Questionnaire dataType ** (PathUntil questionnaire subQuestionnaire, PathFrom subQuestionnaire))
 
 

@@ -53,10 +53,10 @@ update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom))
   AtQuestion
     (Question questionData nextQuestion ** (pathUntil, pathFrom)) 
     (questionData.update state localEvent)
-update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Right dataSubmitted) =
+update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Right answer) =
   AtQuestion
-    (nextQuestion dataSubmitted ** (AppendToPathUntil questionData nextQuestion dataSubmitted pathUntil, EmptyPathFrom))
-    (initialState $ nextQuestion dataSubmitted)
+    (nextQuestion answer ** (AppendToPathUntil questionData nextQuestion answer pathUntil, EmptyPathFrom))
+    (initialState $ nextQuestion answer)
 
 display : Ref Tag.Div
         -> {questionnaire : Questionnaire dataType}
@@ -69,8 +69,8 @@ display ref (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) 
   absurd event
 display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Left localEvent) =
   questionData.display ref state localEvent
-display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Right dataSubmitted) =
-  initialize ref (nextQuestion dataSubmitted)
+display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Right answer) =
+  initialize ref (nextQuestion answer)
 
 
 export covering

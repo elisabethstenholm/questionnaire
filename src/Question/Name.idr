@@ -59,6 +59,9 @@ display _ state (Input name) =
 display _ [] SubmitEmptyString =
   replace validationText (p [ Id validationText, class "validation" ] ["Name cannot be empty!"])
 
+nextQuestion : Name -> Questionnaire ValidData
+nextQuestion name = Question.Phonenumber.question name
+
 questionData : Question.Data
 questionData =
   MkData {
@@ -73,4 +76,4 @@ questionData =
 
 export
 question : Questionnaire ValidData
-question = Question questionData Question.Phonenumber.question
+question = Question questionData nextQuestion

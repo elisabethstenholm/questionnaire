@@ -61,6 +61,9 @@ display _ state (Input string) =
 display _ state SubmitInvalidNumber =
   replace validationText (p [ Id validationText, class "validation" ] ["Invalid phone number!"])
 
+nextQuestion : Name -> MobilePhoneNumber -> Questionnaire ValidData
+nextQuestion name number = Question.Location.question $ Other name number
+
 questionData : Question.Data
 questionData =
   MkData {
@@ -75,4 +78,4 @@ questionData =
 
 export
 question : Name -> Questionnaire ValidData
-question name = Question questionData (Question.Location.question . Other name)
+question name = Question questionData (nextQuestion name)

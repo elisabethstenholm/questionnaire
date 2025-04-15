@@ -45,6 +45,9 @@ display ref state event =
 initialize : Ref Tag.Div -> Cmd (Either (LocalEvent InitState) Location)
 initialize ref = display ref () ()
 
+nextQuestion : Driver -> Location -> Questionnaire ValidData
+nextQuestion driver location = Question.Finished.question $ MkValidData driver location
+
 questionData : Question.Data
 questionData =
   MkData {
@@ -59,4 +62,4 @@ questionData =
 
 export
 question : Driver -> Questionnaire ValidData
-question driver = Question questionData (Question.Finished.question . MkValidData driver)
+question driver = Question questionData (nextQuestion driver)
