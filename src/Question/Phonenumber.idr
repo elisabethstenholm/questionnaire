@@ -66,7 +66,7 @@ questionData =
   MkData {
     State = State,
     Event = LocalEvent,
-    SubmitDataType = MobilePhoneNumber,
+    AnswerType = MobilePhoneNumber,
     initialState = InitState,
     initialize = initialize,
     update = update,

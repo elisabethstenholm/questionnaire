@@ -31,7 +31,15 @@ Event : {questionnaire : Questionnaire dataType} -> State questionnaire -> Type
 Event Init = ()
 Event (AtQuestion (Finished finishedData ** _) _) = Void
 Event (AtQuestion (Question questionData nextQuestion ** _) state) =
-  Either (questionData.Event state) questionData.SubmitDataType
+  Either (questionData.Event state) questionData.AnswerType
+
+initialize : Ref Tag.Div
+          -> (subQuestionnaire : Questionnaire dataType)
+          -> {pathUntil : PathUntil questionnaire subQuestionnaire}
+          -> {pathFrom : PathFrom subQuestionnaire}
+          -> Cmd (Event (AtQuestion (subQuestionnaire ** (pathUntil, pathFrom)) (initialState subQuestionnaire)))
+initialize ref (Finished finishedData) = finishedData.initialize ref
+initialize ref (Question questionData nextQuestion) = questionData.initialize ref
 
 update : {questionnaire : Questionnaire dataType}
        -> (state : State questionnaire)
@@ -39,7 +47,7 @@ update : {questionnaire : Questionnaire dataType}
        -> State questionnaire
 update {questionnaire} Init _ =
   AtQuestion (questionnaire ** (EmptyPathUntil, EmptyPathFrom)) (initialState questionnaire)
-update (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event =
+update (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) _ =
   (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state)
 update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Left localEvent) =
   AtQuestion
@@ -56,22 +64,13 @@ display : Ref Tag.Div
         -> (event : Event state)
         -> Cmd (Event (update state event))
 display ref {questionnaire} Init _ =
-  let cmd = case questionnaire of
-              Finished finishedData => finishedData.initialize ref
-              Question questionData nextQuestion => questionData.initialize ref
-  in batch [ child contentDiv content , cmd ]
-display ref (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event = noAction
+  batch [ child contentDiv content , initialize ref questionnaire ]
+display ref (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event =
+  absurd event
 display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Left localEvent) =
   questionData.display ref state localEvent
 display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Right dataSubmitted) =
-  initialize (nextQuestion dataSubmitted)
-  where
-    initialize : (subQuestionnaire : Questionnaire dataType)
-              -> {pathUntil : PathUntil questionnaire subQuestionnaire}
-              -> {pathFrom : PathFrom subQuestionnaire}
-              -> Cmd (Event (AtQuestion (subQuestionnaire ** (pathUntil, pathFrom)) (initialState subQuestionnaire)))
-    initialize (Finished finishedData) = finishedData.initialize ref
-    initialize (Question questionData nextQuestion) = questionData.initialize ref
+  initialize ref (nextQuestion dataSubmitted)
 
 
 export covering

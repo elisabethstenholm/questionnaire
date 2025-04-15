@@ -50,7 +50,7 @@ questionData =
   MkData {
     State = State,
     Event = LocalEvent,
-    SubmitDataType = Location,
+    AnswerType = Location,
     initialState = InitState,
     initialize = initialize,
     update = update,
