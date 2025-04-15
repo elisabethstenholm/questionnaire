@@ -63,8 +63,8 @@ data PathFrom : (questionnaire : Questionnaire dataType) -> Type where
   ||| edge to the path and get a path going out from a
   PrependToPathFrom : (questionData : Question.Data)
                     -> (nextQuestion : questionData.AnswerType -> Questionnaire dataType)
-                    -> (ch : questionData.AnswerType)
-                    -> PathFrom (nextQuestion ch)
+                    -> (answer : questionData.AnswerType)
+                    -> PathFrom (nextQuestion answer)
                     -> PathFrom (Question questionData nextQuestion)
 
 ||| The type of paths from a given node to a given node
@@ -76,9 +76,9 @@ data PathUntil :  (questionnaire, subQuestionnaire : Questionnaire dataType) -> 
   ||| edge to the path and get a path going from a to c
   AppendToPathUntil : (questionData : Question.Data)
                     -> (nextQuestion : questionData.AnswerType -> Questionnaire dataType)
-                    -> (ch : questionData.AnswerType)
+                    -> (answer : questionData.AnswerType)
                     -> PathUntil questionnaire (Question questionData nextQuestion)
-                    -> PathUntil questionnaire (nextQuestion ch)
+                    -> PathUntil questionnaire (nextQuestion answer)
 
 ||| The zipper of a questionnaire represents the state of the answers so far.
 ||| It consists of the question the user is currently at, the path they have
