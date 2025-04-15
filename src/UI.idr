@@ -41,16 +41,14 @@ update {questionnaire} Init _ =
   AtQuestion (questionnaire ** (EmptyPathUntil, EmptyPathFrom)) (initialState questionnaire)
 update (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event =
   (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state)
-update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) event =
-  case event of
-    Left localEvent => 
-      AtQuestion
-        (Question questionData nextQuestion ** (pathUntil, pathFrom)) 
-        (questionData.update state localEvent)
-    Right dataSubmitted =>
-      AtQuestion
-        (nextQuestion dataSubmitted ** (AppendToPathUntil questionData nextQuestion dataSubmitted pathUntil, EmptyPathFrom))
-        (initialState $ nextQuestion dataSubmitted)
+update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Left localEvent) =
+  AtQuestion
+    (Question questionData nextQuestion ** (pathUntil, pathFrom)) 
+    (questionData.update state localEvent)
+update (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Right dataSubmitted) =
+  AtQuestion
+    (nextQuestion dataSubmitted ** (AppendToPathUntil questionData nextQuestion dataSubmitted pathUntil, EmptyPathFrom))
+    (initialState $ nextQuestion dataSubmitted)
 
 display : Ref Tag.Div
         -> {questionnaire : Questionnaire dataType}
@@ -63,12 +61,10 @@ display ref {questionnaire} Init _ =
               Question questionData nextQuestion => questionData.initialize ref
   in batch [ child contentDiv content , cmd ]
 display ref (AtQuestion (Finished finishedData ** (pathUntil, pathFrom)) state) event = noAction
-display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) event =
-  case event of
-    Left localEvent => 
-      questionData.display ref state localEvent
-    Right dataSubmitted =>
-      initialize (nextQuestion dataSubmitted)
+display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Left localEvent) =
+  questionData.display ref state localEvent
+display ref (AtQuestion (Question questionData nextQuestion ** (pathUntil, pathFrom)) state) (Right dataSubmitted) =
+  initialize (nextQuestion dataSubmitted)
   where
     initialize : (subQuestionnaire : Questionnaire dataType)
               -> {pathUntil : PathUntil questionnaire subQuestionnaire}
