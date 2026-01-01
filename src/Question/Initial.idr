@@ -3,7 +3,6 @@ module Question.Initial
 import Web.MVC
 
 import ValidData
-import Common
 import Questionnaire
 import Question.Name
 import Question.Location
