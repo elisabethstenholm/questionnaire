@@ -1,4 +1,4 @@
-package idris2-questionnaire
+package questionnaire
 version    = 0.0.1
 authors    = "Elisabeth Stenholm"
 depends    = dom-mvc
